@@ -3,7 +3,10 @@ pipeline {
 
     environment {
         VM101 = 'agung@192.168.50.10'
+        VM103 = 'agung@192.168.50.30'
+
         CADVISOR_DIR = '/opt/monitoring/agents/cadvisor'
+        PROMETHEUS_DIR = '/opt/monitoring/prometheus'
     }
 
     stages {
@@ -66,6 +69,49 @@ pipeline {
                           -o StrictHostKeyChecking=yes \
                           "${SSH_USER}@192.168.50.10" \
                           "curl -fsS http://localhost:8080/metrics > /dev/null"
+                    '''
+                }
+            }
+        }
+
+        stage('Deploy Prometheus Config') {
+            steps {
+                withCredentials([
+                    sshUserPrivateKey(
+                        credentialsId: 'vm103-deploy-ssh',
+                        keyFileVariable: 'SSH_KEY',
+                        usernameVariable: 'SSH_USER'
+                    )
+                ]) {
+                    sh '''
+                        ssh -i "$SSH_KEY" \
+                          -o StrictHostKeyChecking=yes \
+                          "${SSH_USER}@192.168.50.30" \
+                          "mkdir -p ${PROMETHEUS_DIR}"
+
+                        scp -i "$SSH_KEY" \
+                          -o StrictHostKeyChecking=yes \
+                          prometheus/prometheus.yml \
+                          "${SSH_USER}@192.168.50.30:${PROMETHEUS_DIR}/prometheus.yml"
+                    '''
+                }
+            }
+        }
+
+        stage('Validate Prometheus Config') {
+            steps {
+                withCredentials([
+                    sshUserPrivateKey(
+                        credentialsId: 'vm103-deploy-ssh',
+                        keyFileVariable: 'SSH_KEY',
+                        usernameVariable: 'SSH_USER'
+                    )
+                ]) {
+                    sh '''
+                        ssh -i "$SSH_KEY" \
+                          -o StrictHostKeyChecking=yes \
+                          "${SSH_USER}@192.168.50.30" \
+                          "grep -A8 'job_name: cadvisor' ${PROMETHEUS_DIR}/prometheus.yml"
                     '''
                 }
             }
