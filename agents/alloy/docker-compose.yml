@@ -7,10 +7,15 @@ services:
     command:
       - run
       - /etc/alloy/config.alloy
+      - --storage.path=/var/lib/alloy/data
 
     volumes:
       - ./config.alloy:/etc/alloy/config.alloy:ro
+      - alloy-data:/var/lib/alloy/data
       - /var/run/docker.sock:/var/run/docker.sock:ro
 
     ports:
       - "12345:12345"
+
+volumes:
+  alloy-data:
