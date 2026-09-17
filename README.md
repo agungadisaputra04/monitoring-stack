@@ -263,20 +263,20 @@ Alerts
 - [x] Grafana configuration
 - [x] Alertmanager configuration
 - [x] Loki configuration
-- [ ] Deploy monitoring stack to VM103
-- [ ] Node Exporter on VM101
-- [ ] Node Exporter on VM102
-- [ ] Node Exporter on VM103
-- [ ] cAdvisor on VM101
-- [ ] API `/metrics` endpoint
-- [ ] Prometheus scrape configuration
-- [ ] Loki log collection
-- [ ] Alert rules
-- [ ] Alert notification channel
-- [ ] Grafana dashboards
-- [ ] Alert testing
-- [ ] Monitoring evidence
-- [ ] Stage 7 documentation
+- [x] Deploy monitoring stack to VM103
+- [x] Node Exporter on VM101
+- [x] Node Exporter on VM102
+- [x] Node Exporter on VM103
+- [x] cAdvisor on VM101
+- [x] API `/metrics` endpoint
+- [x] Prometheus scrape configuration
+- [x] Loki log collection
+- [x] Alert rules
+- [x] Alert notification channel
+- [x] Grafana dashboards
+- [x] Alert testing
+- [x] Monitoring evidence
+- [x] Stage 7 documentation
 
 ## Design Principles
 
