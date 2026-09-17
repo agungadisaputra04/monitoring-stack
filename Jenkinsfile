@@ -7,6 +7,7 @@ pipeline {
 
         CADVISOR_DIR = '/opt/monitoring/agents/cadvisor'
         PROMETHEUS_DIR = '/opt/monitoring/prometheus'
+        ALLOY_DIR = '/opt/monitoring/agents/alloy'
     }
 
     stages {
@@ -117,6 +118,59 @@ pipeline {
                           -o StrictHostKeyChecking=yes \
                           "${SSH_USER}@192.168.50.30" \
                           "curl -fsS http://localhost:9090/-/ready"
+                    '''
+                }
+            }
+        }
+        stage('Deploy Alloy') {
+    steps {
+        withCredentials([
+            sshUserPrivateKey(
+                credentialsId: 'vm101-deploy-ssh',
+                keyFileVariable: 'SSH_KEY',
+                usernameVariable: 'SSH_USER'
+            )
+        ]) {
+            sh '''
+                ssh -i "$SSH_KEY" \
+                  -o StrictHostKeyChecking=yes \
+                  "${SSH_USER}@192.168.50.10" \
+                  "mkdir -p ${ALLOY_DIR}"
+
+                scp -i "$SSH_KEY" \
+                  -o StrictHostKeyChecking=yes \
+                  agents/alloy/docker-compose.yml \
+                  agents/alloy/config.alloy \
+                  "${SSH_USER}@192.168.50.10:${ALLOY_DIR}/"
+
+                ssh -i "$SSH_KEY" \
+                  -o StrictHostKeyChecking=yes \
+                  "${SSH_USER}@192.168.50.10" \
+                  "cd ${ALLOY_DIR} && docker compose pull && docker compose up -d"
+            '''
+        }
+    }
+}
+
+        stage('Validate Alloy') {
+            steps {
+                withCredentials([
+                    sshUserPrivateKey(
+                        credentialsId: 'vm101-deploy-ssh',
+                        keyFileVariable: 'SSH_KEY',
+                        usernameVariable: 'SSH_USER'
+                    )
+                ]) {
+                    sh '''
+                        ssh -i "$SSH_KEY" \
+                        -o StrictHostKeyChecking=yes \
+                        "${SSH_USER}@192.168.50.10" \
+                        "docker ps --filter name=monitoring-alloy"
+
+                        ssh -i "$SSH_KEY" \
+                        -o StrictHostKeyChecking=yes \
+                        "${SSH_USER}@192.168.50.10" \
+                        "curl -fsS http://localhost:12345/-/ready"
                     '''
                 }
             }
