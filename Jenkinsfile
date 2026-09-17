@@ -165,12 +165,12 @@ pipeline {
                         ssh -i "$SSH_KEY" \
                         -o StrictHostKeyChecking=yes \
                         "${SSH_USER}@192.168.50.10" \
-                        "docker ps --filter name=monitoring-alloy"
+                        "docker inspect -f '{{.State.Status}}' monitoring-alloy | grep -qx running"
 
                         ssh -i "$SSH_KEY" \
                         -o StrictHostKeyChecking=yes \
                         "${SSH_USER}@192.168.50.10" \
-                        "curl -fsS http://localhost:12345/-/ready"
+                        "docker logs --tail 50 monitoring-alloy 2>&1 | grep -q 'now listening for http traffic'"
                     '''
                 }
             }
