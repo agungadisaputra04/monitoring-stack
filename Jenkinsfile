@@ -93,12 +93,17 @@ pipeline {
                           -o StrictHostKeyChecking=yes \
                           prometheus/prometheus.yml \
                           "${SSH_USER}@192.168.50.30:${PROMETHEUS_DIR}/prometheus.yml"
+
+                        ssh -i "$SSH_KEY" \
+                          -o StrictHostKeyChecking=yes \
+                          "${SSH_USER}@192.168.50.30" \
+                          "cd /opt/monitoring && docker compose restart prometheus"
                     '''
                 }
             }
         }
 
-        stage('Deploy Prometheus Config') {
+        stage('Validate Prometheus') {
             steps {
                 withCredentials([
                     sshUserPrivateKey(
@@ -109,19 +114,9 @@ pipeline {
                 ]) {
                     sh '''
                         ssh -i "$SSH_KEY" \
-                        -o StrictHostKeyChecking=yes \
-                        "${SSH_USER}@192.168.50.30" \
-                        "mkdir -p ${PROMETHEUS_DIR}"
-
-                        scp -i "$SSH_KEY" \
-                        -o StrictHostKeyChecking=yes \
-                        prometheus/prometheus.yml \
-                        "${SSH_USER}@192.168.50.30:${PROMETHEUS_DIR}/prometheus.yml"
-
-                        ssh -i "$SSH_KEY" \
-                        -o StrictHostKeyChecking=yes \
-                        "${SSH_USER}@192.168.50.30" \
-                        "cd /opt/monitoring && docker compose restart prometheus"
+                          -o StrictHostKeyChecking=yes \
+                          "${SSH_USER}@192.168.50.30" \
+                          "curl -fsS http://localhost:9090/-/ready"
                     '''
                 }
             }
