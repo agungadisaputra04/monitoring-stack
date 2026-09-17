@@ -98,7 +98,7 @@ pipeline {
             }
         }
 
-        stage('Validate Prometheus Config') {
+        stage('Deploy Prometheus Config') {
             steps {
                 withCredentials([
                     sshUserPrivateKey(
@@ -109,9 +109,19 @@ pipeline {
                 ]) {
                     sh '''
                         ssh -i "$SSH_KEY" \
-                          -o StrictHostKeyChecking=yes \
-                          "${SSH_USER}@192.168.50.30" \
-                          "grep -A8 'job_name: cadvisor' ${PROMETHEUS_DIR}/prometheus.yml"
+                        -o StrictHostKeyChecking=yes \
+                        "${SSH_USER}@192.168.50.30" \
+                        "mkdir -p ${PROMETHEUS_DIR}"
+
+                        scp -i "$SSH_KEY" \
+                        -o StrictHostKeyChecking=yes \
+                        prometheus/prometheus.yml \
+                        "${SSH_USER}@192.168.50.30:${PROMETHEUS_DIR}/prometheus.yml"
+
+                        ssh -i "$SSH_KEY" \
+                        -o StrictHostKeyChecking=yes \
+                        "${SSH_USER}@192.168.50.30" \
+                        "cd /opt/monitoring && docker compose restart prometheus"
                     '''
                 }
             }
